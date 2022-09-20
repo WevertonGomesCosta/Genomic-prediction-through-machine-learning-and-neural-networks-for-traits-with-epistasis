@@ -18,16 +18,64 @@ github-repo: wevertongomescosta/Genomic-prediction-through-machine-learning-and-
 # Creating Genetic Map Chart
 
 ## Libraries 
+
 ```{r}
 library(tidyverse)
+library(data.table)
+library(ggthemes)
 library(ggrepel)
 library(ggpubr)
 library(cowplot)
+library(tidytext)
+```
+
+## Phenotypic variance and genetic values
+
+```{r}
+pheno <- read.table("data/simulated_data/phenotype.txt")
+
+colnames(pheno) <- str_replace_all(colnames(pheno), "V", "P")
+
+genetic_values <-
+  read.table("data/simulated_data/genotypic values.txt")
+
+colnames(genetic_values) <-
+  str_replace_all(colnames(genetic_values), "V", "G")
+
+pheno <- pheno %>%
+  pivot_longer(1:18) %>%
+  mutate(trait = as.numeric(factor(name)))
+
+genetic_values <-  genetic_values %>%
+  pivot_longer(1:18) %>%
+  mutate(trait = as.numeric(factor(name)))
+
+data <- pheno %>%
+  full_join(genetic_values) %>%
+  mutate(type = ifelse(name %like% "P", "Phenotype", "Genetic"))
+
+data  %>%
+  ggplot(aes(x = as.factor(trait), y = value, fill = type)) +
+  geom_boxplot() +
+  ylim(0, 120) +
+  scale_fill_gdocs() +
+  theme_bw() +
+  theme(text = element_text(size = 20, face = "bold")) +
+  labs(x = "Traits",
+       y = "Value",
+       fill = "Type")
+
+ggsave(
+  "output/boxplot-traits.tiff",
+  dpi = 600,
+  width = 16,
+  height = 8
+)
 ```
 
 ## Genetic map
 
-Primeiro vamos definir nossos SNPs de interesse para as variáveis. Essas informações foram pré-definidas e podem ser encontrados no arquivo `control_genetic`![](data/simulated_data/control_genetic.txt)
+Primeiro vamos definir nossos SNPs de interesse para as variáveis. Essas informações foram pré-definidas e podem ser encontrados no arquivo `control_genetic`![](data/simulated_data/control_genetic.txt).
 
 ```{r}
 snpsOfInterest <- data.frame(
@@ -1055,7 +1103,7 @@ locus <-
 colnames(locus) <- c("marker")
 ```
 
-Para facilitar a visualização criei um gráfico do mapa genético das cartacterísticas. Para isso criei o  `map` com o número de marcadores e tamanho de cada grupo de liagação. 
+Para facilitar a visualização criei um gráfico  genético das características `map_plot`. Para isso criei o  `map` com o número de marcadores e tamanho de cada grupo de liagação. 
 
 ```{r}
 letters <- c("A", "B", "C", "D", "E")
@@ -1098,19 +1146,24 @@ map <- map %>%
   )
 ```
 
-Para dividir a figura e mostrar todos os mapas genômicos das características, dividi o `snpsOfInterest` e o `map` para cada característica e inclui os SNPs de interesse no `map` para cada característica.
+Para dividir a figura e mostrar todos os maps genômicos das características, dividi o `snpsOfInterest` e o `map` para cada característica e inclui os SNPs de interesse no `map` para cada característica.
 
 ```{r}
 snpsOfInterest1 <- snpsOfInterest %>%
   filter(variable == 1)
+
 snpsOfInterest2 <- snpsOfInterest %>%
   filter(variable == 2)
+
 snpsOfInterest3 <- snpsOfInterest %>%
   filter(variable == 3)
+
 snpsOfInterest4 <- snpsOfInterest %>%
   filter(variable == 4)
+
 snpsOfInterest5 <- snpsOfInterest %>%
   filter(variable == 5)
+
 snpsOfInterest6 <- snpsOfInterest %>%
   filter(variable == 6)
 
@@ -1119,26 +1172,31 @@ map1 <- map %>%
     is_highlight = ifelse(marker %in% snpsOfInterest1$marker, "yes", "no"),
     is_locus = ifelse(marker %in% locus$marker, "yes", "no")
   )
+
 map2 <- map %>%
   mutate(
     is_highlight = ifelse(marker %in% snpsOfInterest2$marker, "yes", "no"),
     is_locus = ifelse(marker %in% locus$marker, "yes", "no")
   )
+
 map3 <- map %>%
   mutate(
     is_highlight = ifelse(marker %in% snpsOfInterest3$marker, "yes", "no"),
     is_locus = ifelse(marker %in% locus$marker, "yes", "no")
   )
+
 map4 <- map %>%
   mutate(
     is_highlight = ifelse(marker %in% snpsOfInterest4$marker, "yes", "no"),
     is_locus = ifelse(marker %in% locus$marker, "yes", "no")
   )
+
 map5 <- map %>%
   mutate(
     is_highlight = ifelse(marker %in% snpsOfInterest5$marker, "yes", "no"),
     is_locus = ifelse(marker %in% locus$marker, "yes", "no")
   )
+
 map6 <- map %>%
   mutate(
     is_highlight = ifelse(marker %in% snpsOfInterest6$marker, "yes", "no"),
@@ -1149,7 +1207,7 @@ map6 <- map %>%
 Agora cirei o gráfico de cada característica e depois agrupei eles em apenas uma imagem `maps`.
 
 ```{r}
-mapa1 <- ggplot(map1, aes(x = LG, y = Size)) +
+map_plot1 <- ggplot(map1, aes(x = LG, y = Size)) +
   geom_segment(aes(
     yend = 200,
     y = 0,
@@ -1208,7 +1266,7 @@ mapa1 <- ggplot(map1, aes(x = LG, y = Size)) +
   ) +
   labs(y = "", x = "")
 
-mapa2 <- ggplot(map2, aes(x = LG, y = Size)) +
+map_plot2 <- ggplot(map2, aes(x = LG, y = Size)) +
   geom_segment(aes(
     yend = 200,
     y = 0,
@@ -1267,7 +1325,7 @@ mapa2 <- ggplot(map2, aes(x = LG, y = Size)) +
   ) +
   labs(y = "", x = "")
 
-mapa3 <- ggplot(map3, aes(x = LG, y = Size)) +
+map_plot3 <- ggplot(map3, aes(x = LG, y = Size)) +
   geom_segment(aes(
     yend = 200,
     y = 0,
@@ -1326,7 +1384,7 @@ mapa3 <- ggplot(map3, aes(x = LG, y = Size)) +
   ) +
   labs(y = "", x = "")
 
-mapa4 <- ggplot(map4, aes(x = LG, y = Size)) +
+map_plot4 <- ggplot(map4, aes(x = LG, y = Size)) +
   geom_segment(aes(
     yend = 200,
     y = 0,
@@ -1385,7 +1443,7 @@ mapa4 <- ggplot(map4, aes(x = LG, y = Size)) +
   ) +
   labs(y = "", x = "")
 
-mapa5 <- ggplot(map5, aes(x = LG, y = Size)) +
+map_plot5 <- ggplot(map5, aes(x = LG, y = Size)) +
   geom_segment(aes(
     yend = 200,
     y = 0,
@@ -1444,7 +1502,7 @@ mapa5 <- ggplot(map5, aes(x = LG, y = Size)) +
   ) +
   labs(y = "", x = "")
 
-mapa6 <- ggplot(map6, aes(x = LG, y = Size)) +
+map_plot6 <- ggplot(map6, aes(x = LG, y = Size)) +
   geom_segment(aes(
     yend = 200,
     y = 0,
@@ -1506,35 +1564,35 @@ mapa6 <- ggplot(map6, aes(x = LG, y = Size)) +
 
 maps <- ggdraw() +
   draw_plot(
-    mapa1,
+    map_plot1,
     x = 0.05,
     y = .5,
     width = .3,
     height = .5
   ) +
   draw_plot(
-    mapa2,
+    map_plot2,
     x = .4,
     y = .5,
     width = .3,
     height = .5
   ) +
   draw_plot(
-    mapa3,
+    map_plot3,
     x = .75,
     y = .5,
     width = .3,
     height = .5
   ) +
   draw_plot(
-    mapa4,
+    map_plot4,
     x = 0.25,
     y = 0,
     width = 0.3,
     height = 0.5
   ) +
   draw_plot(
-    mapa5,
+    map_plot5,
     x = 0.65,
     y = 0,
     width = 0.3,
@@ -1558,8 +1616,11 @@ print(maps)
 
 ```{r}
 pathFenT <- file.path("data/PHEN_T")
+
 pathFenV <- file.path("data/PHEN_V")
+
 pathGenT <- file.path("data/GEN_T")
+
 pathGenV <- file.path("data/GEN_V")
 ```
 
@@ -1604,344 +1665,179 @@ set.seed(123) #Seed for reproduction of results
 ```{r}
 library(earth)                # fit MARS models
 library(caret); library(vip)  # Variable importance
-library(tidyverse)            # Data Handling
 ```
 
-### Linear MARS Processing
+### MARS Processing
    
 ```{r}
-for(j in 1:nvariable) {
-  cat("===========================================================",
-      "\n")
-  cat("Results for for variable ", j, "\n")
-  cat("===========================================================",
-      "\n")
-  R2t <- matrix(nrow = nfolds, ncol = 1) #Object r² training
-  R2v <- matrix(nrow = nfolds, ncol = 1) #Object r² validation
-  reqt <- matrix(nrow = nfolds, ncol = 1) #Objeto RQEM training
-  reqv <- matrix(nrow = nfolds, ncol = 1) #RQEM validation object
-  
-  for (i in 1:nfolds) {
-    dataTy <- read.table(filesFenT[i])
-    dataTx <- read.table(filesGenT[i])
-    dataVy <- read.table(filesFenV[i])
-    dataVx <- read.table(filesGenV[i])
-    
-    # **************************************************** ******************
-    # Fit a basic MARS model LINEAR - Training
-    # **************************************************** ******************
-    cat("K-fold = ", i, "\n")
-    mars1 <- earth(x = dataTx, y = dataTy[, j])
-    coefl <- mars1$coefficients
-    
-    ## Model parameters
-    rt = cor(mars1$fitted.values, dataTy[, j])
-    R2t[i] <- rt * rt
-    errort = mars1$fitted.values - dataTy[, j]
-    reqt[i] = sqrt(mean(errort ^ 2))
-    
-    ## Importance of bookmarks
-    
-    imp <- evimp(mars1, trim = FALSE)
-    imp <- as.data.frame(unclass(imp[, c(1, 6)]))
-    names <- cbind(imp$col, i)
-    imp <- data.frame(imp$rss, names)
-    colnames(imp) <- c("Overall", "marker", "n fold")
-    
-    if (i == 1) {
-      imp.mars1 <- imp
-    } else {
-      imp.mars1 <- imp.mars1 %>% rbind(imp)
-    }
-    
-    ## Coefficients
-    #print(coefl)
-    
-    # **************************************************** *****************
-    # Validation
-    # **************************************************** *****************
-    
-    ## Linear model prediction
-    ypred <- predict(mars1, dataVx)
-    
-    ## Model parameters
-    rv = cor(ypred, dataVy[, j])
-    R2v[i] = rv * rv
-    errorv = dataVy[, j] - ypred
-    reqv[i] = sqrt(mean(errorv ^ 2))
-  }
-  
-  cat("Variable model parameters", j, "\n")
-  par.mars1 <- cbind(R2t, R2v, reqt, reqv)
-  par.mars1 <-
-    rbind(par.mars1, apply(par.mars1, 2, mean), apply(par.mars1, 2, sd))
-  colnames(par.mars1) <-
-    c("R² Trein", "R² Val", "REQM Trein", "REQM Val")
-  rownames(par.mars1) <-
-    c("K-Fold 1",
-      "K-Fold 2",
-      "K-Fold 3",
-      "K-Fold 4",
-      "K-Fold 5",
-      "Mean",
-      " SD")
-  names <- cbind(rownames(par.mars1), "MARS L", j)
-  colnames(names) <- c("n Fold", "method", "variable")
-  par.mars1 <- data.frame(par.mars1, names)
-  par.mars1
-  
-  # Result of all variables
-  
-  if (j == 1) {
-    res.mars1 <- par.mars1
-  } else {
-    res.mars1 <- res.mars1 %>% rbind(par.mars1)
-  }
-  
-  # Importance of all variable markers
-  
-  names <- cbind("MARS L", rep(j, len = nrow(imp.mars1)))
-  colnames(names) <- c("method", "variable")
-  imp.mars1 <- data.frame(imp.mars1, names)
-  
-  if (j == 1) {
-    res.imp.mars1 <- imp.mars1
-  } else {
-    res.imp.mars1 <- res.imp.mars1 %>% rbind(imp.mars1)
-  }
-}
-
-cat("Final result of all variables for MARS Linear", "\n")
-print(res.mars1)
-
-cat("Importance of markers for all MARS Linear variables", "\n")
-res.imp.mars1
+# Altered Forward stepping threshold
+threshi <- 0.001
+threshf <- 0.05
+passot <- 0.005
 ```
 
 
-### Quadratic MARS Processing
-
 ```{r}
-for (j in 1:nvariable) {
-  cat("==================================================== =======",
-      "\n")
-  cat("Results for for variable ", j, "\n")
-  cat("==================================================== =======",
-      "\n")
-  R2t <- matrix(nrow = nfolds, ncol = 1) #Object r² training
-  R2v <- matrix(nrow = nfolds, ncol = 1) #Object r² validation
-  reqt <- matrix(nrow = nfolds, ncol = 1)# Training RQEM object
-  reqv <- matrix(nrow = nfolds, ncol = 1)#RQEM validation object
-  for (i in 1:nfolds) {
-    dataTy <- read.table(filesFenT[i])
-    dataTx <- read.table(filesGenT[i])
-    dataVy <- read.table(filesFenV[i])
-    dataVx <- read.table(filesGenV[i])
-    # **************************************************** ******************
-    # Fit a basic MARS model SQUARE
-    # **************************************************** ******************
-    cat("K-fold = ", i, "\n")
-    mars2 <- earth(x = dataTx, y = dataTy[, j], degree = 2)
-    coefq <- list(mars2$coefficients)
+for(g in 1:grau) {
+  cat("Grau: ", g, "\n")
+  
+  for (j in 1:nvariavel) {
+    cat("Variavel: ", j, "\n")
     
-    ## Model parameters
-    rt = cor(mars2$fitted.values, dataTy[, j])
-    R2t[i] = rt * rt
-    errort = mars2$fitted.values - dataTy[, j]
-    reqt[i] = sqrt(mean(errort ^ 2))
+    R2t <- matrix(nrow = nfolds, ncol = 1) #Objeto r? treinamento
+    R2v <- matrix(nrow = nfolds, ncol = 1) #Objeto r? valida??o
+    reqt <- matrix(nrow = nfolds, ncol = 1)#Objeto RQEM treinamento
+    reqv <- matrix(nrow = nfolds, ncol = 1)#Objeto RQEM valida??o
     
-    ## Importance of bookmarks
-    imp <- evimp(mars2, trim = FALSE)
-    imp <- as.data.frame(unclass(imp[, c(1, 6)]))
-    names <- cbind(imp$col, i)
-    imp <- data.frame(imp$rss, names)
-    colnames(imp) <- c("Overall", "marker", "n fold")
-    
-    if (i == 1) {
-      imp.mars2 <- imp
-    } else {
-      imp.mars2 <- imp.mars2 %>% rbind(imp)
+    for (i in 1:nfolds) {
+      dadosTy <- read.table(filesFenT[i])
+      dadosTx <- read.table(filesGenT[i])
+      dadosVy <- read.table(filesFenV[i])
+      dadosVx <- read.table(filesGenV[i])
+      
+      cat("K-fold = ", i, "\n")
+      
+      for (k in c(threshi , seq(passot , threshf , by = passot))) {
+        mars3 <-
+          earth(
+            x = dadosTx,
+            y = dadosTy[, j],
+            degree = g,
+            thresh = k
+          )
+        
+        ## Predi??o do modelo
+        ypred <- predict(mars3, dadosVx)
+        
+        if (sd(ypred) == 0) {
+          next
+        }
+        
+        ##Par?metros do Modelo
+        rv <- cor(ypred, dadosVy[, j])
+        R2vk <- rv * rv
+        
+        if (k == threshi) {
+          cat("Resultado para Variavel: ",
+              j,
+              " Grau: ",
+              g,
+              "Mudan?a em R?: ",
+              k,
+              "\n")
+          R2v[i] <- R2vk
+          best.mars <- mars3
+          k1 <- k
+          n1 <- n
+        }
+        
+        if (R2vk > R2v[i]) {
+          cat("Resultado para Variavel: ",
+              j,
+              " Grau: ",
+              g,
+              "Mudan?a em R?: ",
+              k,
+              "\n")
+          R2v[i] <- R2vk
+          best.mars <- mars3
+          k1 <- k
+        }
+      }
+      cat("Resultado para Variavel: ",
+          j,
+          " Grau: ",
+          g,
+          "Mudan?a em R?: ",
+          k1,
+          "\n")
+      
+      ## Par?metros do modelo Treinamento
+      rt <- cor(best.mars$fitted.values, dadosTy[, j])
+      R2t[i] <- rt * rt
+      errot <- best.mars$fitted.values - dadosTy[, j]
+      reqt[i] <- sqrt(mean(errot ^ 2))
+      
+      ## Par?metros do modelo Valida??o
+      errov <- dadosVy[, j] - ypred
+      reqv[i] <- sqrt(mean(errov ^ 2))
+      coefc <- list(best.mars$coefficients)
+      
+      
+      ## Import?ncia de marcadores
+      imp <- evimp(best.mars, trim = FALSE)
+      imp <- as.data.frame(unclass(imp[, c(1, 6)]))
+      names <- cbind(imp$col, i)
+      imp <- data.frame(imp$rss, names)
+      colnames(imp) <- c("Overall", "marker", "n fold")
+      
+      if (i == 1) {
+        imp.mars3 <- imp
+      } else {
+        imp.mars3 <- imp.mars3 %>% rbind(imp)
+      }
+      
     }
     
+    cat("Par?metros do modelo da variavel  ", j, "\n")
+    par.mars3 <- cbind(R2t, R2v, reqt, reqv)
+    par.mars3 <-
+      rbind(par.mars3,
+            apply(par.mars3, 2, mean),
+            apply(par.mars3, 2, sd))
+    colnames(par.mars3) <-
+      c("R? Trein", "R? Val",  "REQM Trein", "REQM Val")
+    rownames(par.mars3) <-
+      c("K-Fold 1",
+        "K-Fold 2",
+        "K-Fold 3",
+        "K-Fold 4",
+        "K-Fold 5",
+        "Mean",
+        "SD")
     
-    ## Coefficients
-    # print(coefq)
-    
-    # **************************************************** ******************
-    # 6. Validation
-    # **************************************************** ******************
-    
-    ## Quadratic model prediction
-    ypred <- predict(mars2, dataVx)
-    
-    
-    ##Model Parameters
-    rv = cor(ypred, dataVy[, j])
-    R2v[i] = rv * rv
-    errorv = dataVy[, j] - ypred
-    reqv[i] = sqrt(mean(errorv ^ 2))
-  }
-  
-  cat("Variable model parameters", j, "\n")
-  par.mars2 <- cbind(R2t, R2v, reqt, reqv)
-  par.mars2 <-
-    rbind(par.mars2, apply(par.mars2, 2, mean), apply(par.mars2, 2, sd))
-  colnames(par.mars2) <-
-    c("R² Trein", "R² Val", "REQM Trein", "REQM Val")
-  rownames(par.mars2) <-
-    c("K-Fold 1",
-      "K-Fold 2",
-      "K-Fold 3",
-      "K-Fold 4",
-      "K-Fold 5",
-      "Mean",
-      " SD")
-  names <- cbind(rownames(par.mars2), "MARS Q", j)
-  colnames(names) <- c("n Fold", "method", "variable")
-  par.mars2 <- data.frame(par.mars2, names)
-  par.mars2
-  
-  # Result of all variables
-  if (j == 1) {
-    res.mars2 <- par.mars2
-  } else {
-    res.mars2 <- res.mars2 %>% rbind(par.mars2)
-  }
-  
-  #Importance of all variable markers
-  names <- cbind("MARS Q", rep(j, len = nrow(imp.mars2)))
-  colnames(names) <- c("method", "variable")
-  imp.mars2 <- data.frame(imp.mars2, names)
-  
-  if (j == 1) {
-    res.imp.mars2 <- imp.mars2
-  } else {
-    res.imp.mars2 <- res.imp.mars2 %>% rbind(imp.mars2)
-  }
-}
-
-cat("Final result of all variables for Quadratic MARS", "\n")
-res.mars2
-
-cat("Importance of markers for all Quadratic MARS variables", "\n")
-res.imp.mars2
-
-```
-
-### Cubic MARS Processing
-
-```{r}
-for (j in 1:nvariable) {
-  cat("==================================================== =======",
-      "\n")
-  cat("Results for for variable ", j, "\n")
-  cat("==================================================== =======",
-      "\n")
-  R2t <- matrix(nrow = nfolds, ncol = 1) #Object r² training
-  R2v <- matrix(nrow = nfolds, ncol = 1) #Object r² validation
-  reqt <- matrix(nrow = nfolds, ncol = 1)# Training RQEM object
-  reqv <- matrix(nrow = nfolds, ncol = 1)#RQEM validation object
-  
-  
-  for (i in 1:nfolds) {
-    dataTy <- read.table(filesFenT[i])
-    dataTx <- read.table(filesGenT[i])
-    dataVy <- read.table(filesFenV[i])
-    dataVx <- read.table(filesGenV[i])
-    # **************************************************** ******************
-    # Fit a basic MARS model Cubico
-    # **************************************************** ******************
-    cat("K-fold = ", i, "\n")
-    mars3 <-
-      earth(
-        x = dataTx,
-        y = dataTy[, j],
-        degree = 3,
-        thresh = 0.005
-      ) #Change in R² less than 0.05, stopping criterion
-    coefc <- list(mars3$coefficients)
-    
-    ## Model parameters
-    rt = cor(mars3$fitted.values, dataTy[, j])
-    R2t[i] = rt * rt
-    errort = mars3$fitted.values - dataTy[, j]
-    reqt[i] = sqrt(mean(errort ^ 2))
-    
-    ## Importance of bookmarks
-    imp <- evimp(mars3, trim = FALSE)
-    imp <- as.data.frame(unclass(imp[, c(1, 6)]))
-    names <- cbind(imp$col, i)
-    imp <- data.frame(imp$rss, names)
-    colnames(imp) <- c("Overall", "marker", "n fold")
-    
-    if (i == 1) {
-      imp.mars3 <- imp
-    } else {
-      imp.mars3 <- imp.mars3 %>% rbind(imp)
+    if (g == 1) {
+      names <- cbind(rownames(par.mars3), "MARS L", j)
+      namesi <- cbind("MARS L", rep(j, len = nrow(imp.mars3)))
+    }
+    if (g == 2) {
+      names <- cbind(rownames(par.mars3), "MARS Q", j)
+      namesi <- cbind("MARS Q", rep(j, len = nrow(imp.mars3)))
+    }
+    if (g == 3) {
+      names <- cbind(rownames(par.mars3), "MARS C", j)
+      namesi <- cbind("MARS C", rep(j, len = nrow(imp.mars3)))
     }
     
+    colnames(names) <- c("n Fold", "method", "variable")
+    par.mars3 <- data.frame(par.mars3, names)
+    par.mars3
     
-    ## Coefficients
-    # print(coefc)
+    colnames(namesi) <- c("method", "variable")
+    imp.mars3 <- data.frame(imp.mars3, namesi)
     
-    # **************************************************** ******************
-    # 6. Validation
-    # **************************************************** ******************
+    #Resultado de todas variaveis
+    if (j == 1) {
+      res.mars3 <- par.mars3
+      res.imp.mars3 <- imp.mars3
+    } else {
+      res.mars3 <- res.mars3 %>% rbind(par.mars3)
+      res.imp.mars3 <- res.imp.mars3 %>% rbind(imp.mars3)
+    }
     
-    ## Cubic model prediction
-    ypred <- predict(mars3, dataVx)
+    write_xlsx(res.mars3,  paste("res.mars", j, g, ".xlsx", sep = ""))
     
+    arq <- paste("res.imp.mars", j, g, ".Rdata", sep = "")
+    save(res.imp.mars3,  file = arq)
     
-    ##Model Parameters
-    rv = cor(ypred, dataVy[, j])
-    R2v[i] = rv * rv
-    errorv = dataVy[, j] - ypred
-    reqv[i] = sqrt(mean(errorv ^ 2))
   }
+  cat("Resultado final de todas variav?is para MARS", g, "\n")
+  write_xlsx(res.mars3,  paste("res.mars", g, ".xlsx", sep = ""))
   
-  cat("Variable model parameters", j, "\n")
-  par.mars3 <- cbind(R2t, R2v, reqt, reqv)
-  par.mars3 <-
-    rbind(par.mars3, apply(par.mars3, 2, mean), apply(par.mars3, 2, sd))
-  colnames(par.mars3) <-
-    c("R² Trein", "R² Val", "REQM Trein", "REQM Val")
-  rownames(par.mars3) <-
-    c("K-Fold 1",
-      "K-Fold 2",
-      "K-Fold 3",
-      "K-Fold 4",
-      "K-Fold 5",
-      "Mean",
-      " SD")
-  names <- cbind(rownames(par.mars3), "MARS C", j)
-  colnames(names) <- c("n Fold", "method", "variable")
-  par.mars3 <- data.frame(par.mars3, names)
-  par.mars3
-  
-  # Result of all variables
-  if (j == 1) {
-    res.mars3 <- par.mars3
-  } else {
-    res.mars3 <- res.mars3 %>% rbind(par.mars3)
-  }
-  
-  #Importance of all variable markers
-  names <- cbind("MARS C", rep(j, len = nrow(imp.mars3)))
-  colnames(names) <- c("method", "variable")
-  imp.mars3 <- data.frame(imp.mars3, names)
-  
-  if (j == 1) {
-    res.imp.mars3 <- imp.mars3
-  } else {
-    res.imp.mars3 <- res.imp.mars3 %>% rbind(imp.mars3)
-  }
+  cat("Import?ncia de marcadores para todas variav?is do MARS", g, "\n")
+  arq <- paste("res.imp.mars", g, ".RData", sep = "")
+  save(res.imp.mars3,  file = arq)
 }
-
-cat("Final result of all variables for Cubic MARS", "\n")
-res.mars3
-
-cat("Importance of markers for all Cubic MARS variables", "\n")
-res.imp.mars3
 ```
 
 ## Decision Tree - Continuous Response
@@ -1973,9 +1869,8 @@ for(j in 1:nvariable) {
     dataVy <- read.table(filesFenV[i])
     dataVx <- read.table(filesGenV[i])
     
-    # **************************************************** ******************
     # Fit a basic Decision Tree - Training
-    # **************************************************** ******************
+    
     cat("K-fold = ", i, "\n")
     fit_tree <- rpart(dataTy[, j] ~ . , data = dataTx)
     
@@ -1999,10 +1894,7 @@ for(j in 1:nvariable) {
       imp.ad <- imp.ad %>% rbind(imp)
     }
     
-    
-    # **************************************************** ******************
     # Validation
-    # **************************************************** ******************
     
     ## Model prediction
     outputV = predict(fit_tree, newdata = dataVx)
@@ -2041,6 +1933,7 @@ for(j in 1:nvariable) {
   }
   
   #Importance of all variable markers
+  
   names <- cbind("DT", rep(j, len = nrow(imp.ad)))
   colnames(names) <- c("method", "variable")
   imp.ad <- data.frame(imp.ad, names)
@@ -2052,11 +1945,14 @@ for(j in 1:nvariable) {
     res.imp.ad <- res.imp.ad %>% rbind(imp.ad)
   }
 }
-cat("Final result of all variables for Decision Tree", "\n")
-res.ad
 
-cat("Importance of markers for all decision tree variables", "\n")
-res.imp.ad
+#cat("Final result of all variables for Decision Tree", "\n")
+#res.ad
+write.csv(res.ad, "output/res.ad.csv", row.names = FALSE)
+
+#cat("Importance of markers for all decision tree variables", "\n")
+#res.imp.ad
+write.csv(res.imp.ad, "output/res.imp.ad.csv", row.names = FALSE)
 ```
 
 ## Bagging
@@ -2087,9 +1983,9 @@ for(j in 1:nvariable) {
     dataVy <- read.table(filesFenV[i])
     dataVx <- read.table(filesGenV[i])
     
-    # **************************************************** ******************
+    
     # Fit a basic Bagging - Training
-    # **************************************************** ******************
+    
     cat("K-fold = ", i, "\n")
     bag <-
       randomForest(dataTy[, j] ~ . , data = dataTx, mtry = ncol(dataTx))
@@ -2113,14 +2009,10 @@ for(j in 1:nvariable) {
       imp.bag <- imp.bag %>% rbind(imp)
     }
     
-    
-    # **************************************************** ******************
     # Validation
-    # **************************************************** ******************
     
     ## Model prediction
     outputV = predict(bag, newdata = dataVx)
-    
     
     ## Model parameters
     rs = cor(dataVy[, j], outputV)
@@ -2143,7 +2035,7 @@ for(j in 1:nvariable) {
       "K-Fold 5",
       "Mean",
       " SD")
-  names <- cbind(rownames(par.bag), "BAG", j)
+  names <- cbind(rownames(par.bag), "BA", j)
   colnames(names) <- c("n Fold", "method", "variable")
   par.bag <- data.frame(par.bag, names)
   par.bag
@@ -2156,7 +2048,7 @@ for(j in 1:nvariable) {
   }
   
   #Importance of all variable markers
-  names <- cbind("BAG", rep(j, len = nrow(imp.bag)))
+  names <- cbind("BA", rep(j, len = nrow(imp.bag)))
   colnames(names) <- c("method", "variable")
   imp.bag <- data.frame(imp.bag, names)
   
@@ -2166,11 +2058,12 @@ for(j in 1:nvariable) {
     res.imp.bag <- res.imp.bag %>% rbind(imp.bag)
   }
 }
-cat("Final result of all variables for Bagging", "\n")
-res.bag
-
-cat("Importance of markers for all Bagging variables", "\n")
-res.imp.bag
+#cat("Final result of all variables for Bagging", "\n")
+#res.bag
+write.csv(res.bag, "output/res.bag.csv", row.names = FALSE)
+#cat("Importance of markers for all Bagging variables", "\n")
+#res.imp.bag
+write.csv(res.imp.bag, "output/res.imp.bag.csv", row.names = FALSE)
 ```
 
 ## Random Forest
@@ -2201,9 +2094,9 @@ for(j in 1:nvariable) {
     dataVy <- read.table(filesFenV[i])
     dataVx <- read.table(filesGenV[i])
     
-    # **************************************************** ******************
+    
     # Fit a basic Random Forest - Training
-    # **************************************************** ******************
+    
     cat("K-fold = ", i, "\n")
     rf <-
       randomForest(
@@ -2232,9 +2125,7 @@ for(j in 1:nvariable) {
       imp.rf <- imp.rf %>% rbind(imp)
     }
     
-    # **************************************************** ******************
     # Validation
-    # **************************************************** ******************
     
     ## Model prediction
     outputV = predict(rf, newdata = dataVx)
@@ -2283,11 +2174,13 @@ for(j in 1:nvariable) {
     res.imp.rf <- res.imp.rf %>% rbind(imp.rf)
   }
 }
-cat("Final result of all variables for Random Forest", "\n")
-res.rf
 
-cat("Importance of markers for all variables in Random Forest", "\n")
-res.imp.rf
+#cat("Final result of all variables for Random Forest", "\n")
+#res.rf
+write.csv(res.rf, "output/res.rf.csv", row.names = FALSE)
+#cat("Importance of markers for all variables in Random Forest", "\n")
+#res.imp.rf
+write.csv(res.imp.rf, "output/res.imp.rf.csv", row.names = FALSE)
 ```
 
 ## Boosting
@@ -2318,9 +2211,8 @@ for(j in 1:nvariable) {
     dataVy <- read.table(filesFenV[i])
     dataVx <- read.table(filesGenV[i])
     
-    # **************************************************** ******************
     # Fit a basic Boosting - Training
-    # **************************************************** ******************
+    
     cat("K-fold = ", i, "\n")
     boost = gbm(
       dataTy[, j] ~ . ,
@@ -2356,13 +2248,10 @@ for(j in 1:nvariable) {
       imp.boost <- imp.boost %>% rbind(imp)
     }
     
-    # **************************************************** ******************
     # Validation
-    # **************************************************** ******************
     
     ## Model prediction
     outputV = predict(boost, newdata = dataVx, n.trees = 500)
-    
     
     ## Model parameters
     rs = cor(dataVy[, j], outputV)
@@ -2385,7 +2274,7 @@ for(j in 1:nvariable) {
       "K-Fold 5",
       "Mean",
       " SD")
-  names <- cbind(rownames(par.boost), "Boost", j)
+  names <- cbind(rownames(par.boost), "BO", j)
   colnames(names) <- c("n Fold", "method", "variable")
   par.boost <- data.frame(par.boost, names)
   par.boost
@@ -2398,7 +2287,7 @@ for(j in 1:nvariable) {
   }
   
   #Importance of all variable markers
-  names <- cbind("Boost", rep(j, len = nrow(imp.boost)))
+  names <- cbind("BO", rep(j, len = nrow(imp.boost)))
   colnames(names) <- c("method", "variable")
   imp.boost <- data.frame(imp.boost, names)
   
@@ -2408,11 +2297,11 @@ for(j in 1:nvariable) {
     res.imp.boost <- res.imp.boost %>% rbind(imp.boost)
   }
 }
-cat("Final result of all variables for MARS Linear", "\n")
-res.boost
-
-cat("Importance of markers for all MARS Linear variables", "\n")
-res.imp.boost
+#cat("Final result of all variables for MARS Linear", "\n")
+#res.boost
+write.csv(res.boost,"output/res.boost.csv", row.names = FALSE)
+#cat("Importance of markers for all MARS Linear variables", "\n")
+write.csv(res.imp.boost,"output/res.imp.boost.csv", row.names = FALSE)
 ```
 
 ## Genomic best linear unbiased prediction (G-BLUP)
@@ -2444,9 +2333,8 @@ for(j in 1:nvariable) {
     dataVy <- read.table(filesFenV[i])
     dataVx <- read.table(filesGenV[i])
     
-    # **************************************************** ******************
     # Fit a G-LUP model - Training
-    # **************************************************** ******************
+    
     cat("K-fold = ", i, "\n")
     gblup = kinship.BLUP(dataTy[, j], G.train = dataTx)
     
@@ -2457,9 +2345,8 @@ for(j in 1:nvariable) {
     errort = errort - mean(errort)
     reqt[i] <- sqrt(mean(errort ^ 2))
     
-    
     ## Importance of bookmarks
-    # structuring genomic values ​​in array to use sort
+    # structuring genomic values in array to use sort
     gbv = as.matrix(gblup$g.train)
     
     # Marker effect vector
@@ -2477,10 +2364,7 @@ for(j in 1:nvariable) {
       imp.gblup <- imp.gblup %>% rbind(imp)
     }
     
-    
-    # **************************************************** ******************
     # Validation
-    # **************************************************** ******************
     
     ## Model prediction
     dataVx = as.matrix(dataVx)
@@ -2492,8 +2376,6 @@ for(j in 1:nvariable) {
     errorv <- dataVy[, j] - outputV
     errorv = errorv - mean(errorv)
     reqv[i] <- sqrt(mean(errorv ^ 2))
-    
-    
   }
   
   cat("Variable model parameters", j, "\n")
@@ -2535,11 +2417,12 @@ for(j in 1:nvariable) {
   }
 }
 
-cat("Final result of all variables for G-BLUP", "\n")
-res.gblup
-
-cat("Importance of markers for all G_BLUP variables", "\n")
-res.imp.gblup
+#cat("Final result of all variables for G-BLUP", "\n")
+write.csv(res.gblup,"output/res.gblup.csv", row.names = FALSE)
+#
+#cat("Importance of markers for all G_BLUP variables", "\n")
+#res.imp.gblup
+write.csv(res.imp.gblup,"output/res.imp.gblup.csv", row.names = FALSE)
 ```
 
 ## Radial Base Network
@@ -2547,18 +2430,31 @@ res.imp.gblup
 ### Loading results obtained in the [Genes Software](https://www.scielo.br/j/asagr/a/sLvDYF5MYv9kWR5MKgxb6sL/?lang=en). Scripts can be seen [here](analysis/suplementary__matlab_rbf.m)
 
 ```{r}
-res.rbf <- read_excel("output/resultrbf.xls")
-
-colnames(res.rbf) <- colnames(res.ad) # naming the columns like the other files
+res.rbf <- read.csv("output/res.rbf.csv")
+  
+colnames(res.rbf) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
 ```
+
 ## Multilayer Perceptron Network
 
 ### Loading results obtained in the [Genes Software](https://www.scielo.br/j/asagr/a/sLvDYF5MYv9kWR5MKgxb6sL/?lang=en). Scripts can be seen [here](analysis/suplementary__matlab_MLP.m)
 
 ```{r}
-res.mlp <- read_excel("output/resultmlp.xls")
+res.mlp <- read.csv("output/res.mlp.csv", row.names = 1)
 
-colnames(res.mlp) <- colnames(res.ad) # naming the columns like the other files
+colnames(res.mlp) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
 ```
 
 ## Results
@@ -2566,17 +2462,90 @@ colnames(res.mlp) <- colnames(res.ad) # naming the columns like the other files
 ### Organizing results
 
 ```{r}
+res.ad <- read.csv("output/res.ad.csv", row.names = 1)
+colnames(res.ad) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
+
+res.bag <- read.csv("output/res.bag.csv", row.names = 1)
+colnames(res.bag) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
+res.boost <- read.csv("output/res.boost.csv", row.names = 1)
+colnames(res.boost) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
+
+res.rf <- read.csv("output/res.rf.csv", row.names = 1)
+colnames(res.rf) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
+res.mars1 <- read.csv("output/res.mars1.csv", row.names = 1)
+colnames(res.mars1) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
+
+res.mars2 <- read.csv("output/res.mars2.csv", row.names = 1)
+colnames(res.mars2) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
+
+res.mars3 <- read.csv("output/res.mars3.csv", row.names = 1)
+colnames(res.mars3) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
+
+res.gblup <- read.csv("output/res.gblup.csv", row.names = 1)
+colnames(res.gblup) <- c("R².Trein",
+    "R².Val",
+    "REQM.Trein",
+    "REQM.Val",
+    "n.Fold",
+    "method",
+    "variable") # naming the columns like the other files
+```
+
+
+```{r}
 result <-
-  rbind(
-    res.mars1,
-    res.mars2,
-    res.mars3,
-    res.ad,
-    res.bag,
-    res.rf,
-    res.boost,
-    res.gblup
-  )
+  rbind(res.mars1,
+        res.mars2,
+        res.mars3,
+        res.ad,
+        res.bag,
+        res.rf,
+        res.boost,
+        res.gblup,
+        res.rbf,
+        res.mlp)
 
 colnames(result) <-
   c("R².Trein",
@@ -2591,6 +2560,8 @@ result <- result %>%
   mutate(
     variable = as.numeric(variable),
     method = as.factor(method),
+    method = fct_relevel(method, c("BA", "BO",  "DT", "G-BLUP",  "MARS L", "MARS Q", "MARS C", "MLP", "RBF", "RF")),
+    method = fct_recode(method, "MARS 1" = "MARS L", "MARS 2" = "MARS Q", "MARS 3" = "MARS C"),
     n.fold = as.factor(str_replace(n.fold, c("-", " "), "")),
     herd = as.factor(
       case_when(
@@ -2611,31 +2582,29 @@ result <- result %>%
     )
   )
 
-barras<-result %>%
-  group_by(ngenes,herd, method)%>%
+result_final <- result %>%
+  group_by(ngenes, herd, method) %>%
   filter(n.fold != "Mean" & n.fold != "SD") %>%
-  summarise(R2.mean = mean(`R².Val`)*100,
-            REQM.mean = mean(REQM.Val)*100,
-            R2.sd = sd(`R².Val`)*100,
-            REQM.sd = sd(REQM.Val)*100)%>%
+  summarise(
+    R2.mean = mean(`R².Val`) * 100,
+    REQM.mean = mean(REQM.Val) * 100,
+    R2.sd = sd(`R².Val`) * 100,
+    REQM.sd = sd(REQM.Val) * 100
+  ) %>%
   ungroup()
 
-barras<-barras %>%
-  mutate(
-    familia = as.factor(case_when(
-      method == "MARS L" | method == "MARS Q" | method == "MARS C" ~ "Mars",
-      method == "DT" | method == "RF" | method == "BAG" | method == "Boost" ~ "Tree",
-      method == "G-BLUP" ~ "G-BLUP")
-  ))
+result_final <- result_final %>%
+  mutate(family = factor(
+    case_when(
+      method == "MARS 1" |
+        method == "MARS 2" | method == "MARS 3" ~ "MARS",
+      method == "DT" |
+        method == "RF" | method == "BA" | method == "BO" ~ "TREE",
+      method == "G-BLUP" ~ "G-BLUP",
+      method == "RBF" | method == "MLP" ~ "NETWORK"
+    )))
 
-library(tidytext)
-
-h_line <- barras %>%
-  group_by(ngenes,herd)%>%
-  summarise(mediar2 = mean(R2.mean),
-            mediareqm = mean(REQM.mean))
-  
-levels(barras$method)<- c("BA",    "BO",  "DT",     "G-BLUP", "MARS 1", "MARS 2", "MARS 3",    "RF")
+write.csv(result_final,"output/result.final.csv", row.names = FALSE)
 ```
 
 ### Ploting results
@@ -2643,52 +2612,94 @@ levels(barras$method)<- c("BA",    "BO",  "DT",     "G-BLUP", "MARS 1", "MARS 2"
 #### Acuracy selective
 
 ```{r}
-library(ggthemes) # Load
 
-barras%>%
-  mutate( varnames = fct_reorder2(method, R2.mean,familia))%>%
-  ggplot(aes(x=varnames, y=R2.mean, fill=familia)) + 
-  geom_col(alpha = 0.8, width = 0.85)+
-  geom_point(colour = "#FC4E07")+
-  geom_errorbar(aes(ymin=R2.mean-R2.sd, ymax=R2.mean+R2.sd), width=.2,
-                position=position_dodge(.9))+
-  scale_x_discrete(expand = expansion(add = 1))+
-  scale_y_continuous(limits = c(0,100), expand = c(0,0),breaks = scales::breaks_width(10))+
-  geom_hline(data = h_line,aes(yintercept = mediar2), linetype = "dashed", colour = "red")+
-  facet_grid(herd~ngenes)+
-  theme_classic()+
-  theme(axis.text.x = element_text(angle = 60, hjust=1),
-        text = element_text(size = 12), 
-        panel.spacing = unit(1, "lines"),
-        legend.position = "top")+
- labs(y = "R? (%)",x="", fill =  "")+
+result_final <- read.csv("output/result.final.csv")
+
+h_line <- result_final %>%
+  group_by(ngenes, herd) %>%
+  summarise(mediar2 = mean(R2.mean),
+            mediareqm = mean(REQM.mean))
+
+result_final %>%
+  mutate(varnames = fct_reorder2(method, R2.mean, family)) %>%
+  ggplot(aes(x = varnames, y = R2.mean, fill = family)) +
+  geom_col(alpha = 0.8, width = 0.85) +
+  geom_point(colour = "#FC4E07",show.legend = FALSE) +
+  geom_errorbar(
+    aes(ymin = R2.mean - R2.sd, ymax = R2.mean + R2.sd),
+    width = .2,
+    position = position_dodge(.9)
+  ) +
+  scale_x_discrete(expand = expansion(add = 1)) +
+  scale_y_continuous(
+    limits = c(0, 100),
+    expand = c(0, 0),
+    breaks = scales::breaks_width(10)
+  ) +
+  geom_hline(
+    data = h_line,
+    aes(yintercept = mediar2),
+    linetype = "dashed",
+    colour = "red"
+  ) +
+  facet_grid(herd ~ ngenes) +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1),
+    text = element_text(size = 12),
+    panel.spacing = unit(1, "lines"),
+    legend.position = "top"
+  ) +
+  labs(y = "R² (%)", x = "", fill =  "") +
   scale_fill_gdocs()
 
-
-ggsave(filename="r2.tiff", units = "cm", width = 30, height = 20, dpi = 300)
-
+ggsave(
+  filename = "output/r2.tiff",
+  units = "cm",
+  width = 30,
+  height = 20,
+  dpi = 300
+)
 ```
+
 #### Acuracy predtive
 
 ```{r}
-barras%>%
-  mutate( varnames = fct_reorder2(method, REQM.mean,familia))%>%
-  ggplot(aes(x=varnames, y=REQM.mean, fill=familia)) + 
-  geom_col(alpha = 0.8, width = 0.85)+
-  geom_point(colour = "#FC4E07")+
-  geom_errorbar(aes(ymin=REQM.mean-REQM.sd, ymax=REQM.mean+REQM.sd), width=.2,
-                position=position_dodge(.9))+
-  scale_x_discrete(expand = expansion(add = 1))+
-  geom_hline(data = h_line,aes(yintercept = mediareqm), linetype = "dashed", colour = "red")+
-  facet_grid(herd~ngenes, scales = "free")+
-  theme_classic()+
-  theme(axis.text.x = element_text(angle = 60, hjust=1),
-        text = element_text(size = 12), 
-        panel.spacing = unit(1, "lines"),
-        legend.position = "top")+
-  labs(y = "RMSE",x="", fill =  "")+
-  scale_fill_gdocs()
+result_final %>%
+  mutate(varnames = fct_reorder2(method, REQM.mean, family)) %>%
+  ggplot(aes(x = varnames, y = REQM.mean, fill = family)) +
+  geom_col(alpha = 0.8, width = 0.85) +
+  geom_point(colour = "#FC4E07",show.legend = FALSE) +
+  geom_errorbar(
+    aes(ymin = REQM.mean - REQM.sd, ymax = REQM.mean + REQM.sd),
+    width = .2,
+    position = position_dodge(.9)
+  ) +
+  scale_x_discrete(expand = expansion(add = 1)) +
+  geom_hline(
+    data = h_line,
+    aes(yintercept = mediareqm),
+    linetype = "dashed",
+    colour = "red"
+  ) +
+  facet_grid(herd ~ ngenes, scales = "free") +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1),
+    text = element_text(size = 12),
+    panel.spacing = unit(1, "lines"),
+    legend.position = "top"
+  ) +
+  labs(y = "RMSE", x = "", fill =  "") +
+  scale_fill_gdocs() +
+  ylim(0,420)
 
-ggsave(filename="reqm.tiff", units = "cm", width = 30, height = 20, dpi = 300)
+ggsave(
+  filename = "output/reqm.tiff",
+  units = "cm",
+  width = 30,
+  height = 20,
+  dpi = 300
+)
 ```
 
