@@ -13,6 +13,10 @@ editor_options:
 github-repo: wevertongomescosta/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis
 ---
 
+```{r setup, include=F} 
+knitr::opts_chunk$set(echo = T, warning = F)
+```
+
 # Genomic prediction through machine learning and neural networks for traits with epistasis
 
 # Creating Genetic Map Chart
@@ -68,7 +72,7 @@ data  %>%
 
 ## Genetic map
 
-Primeiro vamos definir nossos SNPs de interesse para as variáveis. Essas informações foram pré-definidas e podem ser encontrados no arquivo `control_genetic`![](data/simulated_data/control_genetic.txt). Vamos carregar o arquivo `snpsOfInterest.RData`"[](analysis/snpsOfInterest.RData) que comtemas infomações dos snps considerados QTLs por variavel. 
+Primeiro vamos definir nossos SNPs de interesse para as variáveis. Essas informações foram pré-definidas e podem ser encontrados no arquivo `control_genetic`. Vamos carregar o arquivo `snpsOfInterest.RData` que comtemas infomações dos snps considerados QTLs por variavel. 
 
 ```{r}
 load("analysis/snpsOfInterest.RData")
