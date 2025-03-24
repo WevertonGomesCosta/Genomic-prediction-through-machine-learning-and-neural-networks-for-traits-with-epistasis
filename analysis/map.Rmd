@@ -1,0 +1,612 @@
+---
+title: "Mapa Genético"
+author: "Costa, W. G."
+date: "`r Sys.Date()`"
+site: workflowr::wflow_site
+url: https://wevertongomescosta.github.io/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis/
+output:
+  workflowr::wflow_html:
+    toc: yes
+  highlight: github
+editor_options:
+  chunk_output_type: console
+github-repo: wevertongomescosta/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis
+---
+
+# Genomic prediction through machine learning and neural networks for traits with epistasis
+
+# Creating Genetic Map Chart
+
+## Libraries 
+
+```{r}
+library(tidyverse)
+library(data.table)
+library(ggthemes)
+library(ggrepel)
+library(ggpubr)
+library(cowplot)
+library(tidytext)
+```
+
+## Phenotypic variance and genetic values
+
+```{r}
+pheno <- read.table("data/simulated_data/phenotype.txt")
+
+colnames(pheno) <- str_replace_all(colnames(pheno), "V", "P")
+
+genetic_values <-
+  read.table("data/simulated_data/genotypic values.txt")
+
+colnames(genetic_values) <-
+  str_replace_all(colnames(genetic_values), "V", "G")
+
+pheno <- pheno %>%
+  pivot_longer(1:18) %>%
+  mutate(trait = as.numeric(factor(name)))
+
+genetic_values <-  genetic_values %>%
+  pivot_longer(1:18) %>%
+  mutate(trait = as.numeric(factor(name)))
+
+data <- pheno %>%
+  full_join(genetic_values) %>%
+  mutate(type = ifelse(name %like% "P", "Phenotype", "Genetic"))
+
+data  %>%
+  ggplot(aes(x = as.factor(trait), y = value, fill = type)) +
+  geom_boxplot() +
+  ylim(0, 120) +
+  scale_fill_gdocs() +
+  theme_bw() +
+  theme(text = element_text(size = 20, face = "bold")) +
+  labs(x = "Traits",
+       y = "Value",
+       fill = "Type")
+```
+
+## Genetic map
+
+Primeiro vamos definir nossos SNPs de interesse para as variáveis. Essas informações foram pré-definidas e podem ser encontrados no arquivo `control_genetic`![](data/simulated_data/control_genetic.txt). Vamos carregar o arquivo `snpsOfInterest.RData`"[](analysis/snpsOfInterest.RData) que comtemas infomações dos snps considerados QTLs por variavel. 
+
+```{r}
+load("analysis/snpsOfInterest.RData")
+```
+
+Agora vamos definir os nomes das colunas para nosso `snpsOfInterest` e criar um objeto `locus` com as informações de ininício e témino de cada grupo de ligação. 
+
+```{r}
+locus <-
+  data.frame(
+    c(
+      1,
+      401,
+      402,
+      802,
+      803,
+      1203,
+      1204,
+      1604,
+      1605,
+      2005,
+      2006,
+      2406,
+      2407,
+      2807,
+      2808,
+      3208,
+      3209,
+      3609,
+      3610,
+      4010
+    )
+  )
+
+colnames(locus) <- c("marker")
+```
+
+Para facilitar a visualização criei um gráfico  genético das características `map_plot`. Para isso criei o  `map` com o número de marcadores e tamanho de cada grupo de liagação. 
+
+```{r}
+letters <- c("A", "B", "C", "D", "E")
+
+map <-
+  data.frame(rbind(
+    cbind(seq(1, 401, 1), rep("LG 1", 401), seq(0, 200, 0.5)),
+    cbind(seq(402, 802, 1), rep("LG 2", 401), seq(0, 200, 0.5)),
+    cbind(seq(803, 1203, 1), rep("LG 3", 401), seq(0, 200, 0.5)),
+    cbind(seq(1204, 1604, 1), rep("LG 4", 401), seq(0, 200, 0.5)),
+    cbind(seq(1605, 2005, 1), rep("LG 5", 401), seq(0, 200, 0.5)),
+    cbind(seq(2006, 2406, 1), rep("LG 6", 401), seq(0, 200, 0.5)),
+    cbind(seq(2407, 2807, 1), rep("LG 7", 401), seq(0, 200, 0.5)),
+    cbind(seq(2808, 3208, 1), rep("LG 8", 401), seq(0, 200, 0.5)),
+    cbind(seq(3209, 3609, 1), rep("LG 9", 401), seq(0, 200, 0.5)),
+    cbind(seq(3610, 4010, 1), rep("LG 10", 401), seq(0, 200, 0.5))
+  ))
+
+colnames(map) <- c("marker", "LG", "Size")
+
+map <- map %>%
+  mutate(
+    marker = as.numeric(marker),
+    Size = as.numeric(Size),
+    LG = factor(
+      LG,
+      levels = c(
+        "LG 1",
+        "LG 2",
+        "LG 3",
+        "LG 4",
+        "LG 5",
+        "LG 6",
+        "LG 7",
+        "LG 8",
+        "LG 9",
+        "LG 10"
+      )
+    )
+  )
+```
+
+Para dividir a figura e mostrar todos os maps genômicos das características, dividi o `snpsOfInterest` e o `map` para cada característica e inclui os SNPs de interesse no `map` para cada característica.
+
+```{r}
+snpsOfInterest1 <- snpsOfInterest %>%
+  filter(variable == 1)
+
+snpsOfInterest2 <- snpsOfInterest %>%
+  filter(variable == 2)
+
+snpsOfInterest3 <- snpsOfInterest %>%
+  filter(variable == 3)
+
+snpsOfInterest4 <- snpsOfInterest %>%
+  filter(variable == 4)
+
+snpsOfInterest5 <- snpsOfInterest %>%
+  filter(variable == 5)
+
+snpsOfInterest6 <- snpsOfInterest %>%
+  filter(variable == 6)
+
+map1 <- map %>%
+  mutate(
+    is_highlight = ifelse(marker %in% snpsOfInterest1$marker, "yes", "no"),
+    is_locus = ifelse(marker %in% locus$marker, "yes", "no")
+  )
+
+map2 <- map %>%
+  mutate(
+    is_highlight = ifelse(marker %in% snpsOfInterest2$marker, "yes", "no"),
+    is_locus = ifelse(marker %in% locus$marker, "yes", "no")
+  )
+
+map3 <- map %>%
+  mutate(
+    is_highlight = ifelse(marker %in% snpsOfInterest3$marker, "yes", "no"),
+    is_locus = ifelse(marker %in% locus$marker, "yes", "no")
+  )
+
+map4 <- map %>%
+  mutate(
+    is_highlight = ifelse(marker %in% snpsOfInterest4$marker, "yes", "no"),
+    is_locus = ifelse(marker %in% locus$marker, "yes", "no")
+  )
+
+map5 <- map %>%
+  mutate(
+    is_highlight = ifelse(marker %in% snpsOfInterest5$marker, "yes", "no"),
+    is_locus = ifelse(marker %in% locus$marker, "yes", "no")
+  )
+
+map6 <- map %>%
+  mutate(
+    is_highlight = ifelse(marker %in% snpsOfInterest6$marker, "yes", "no"),
+    is_locus = ifelse(marker %in% locus$marker, "yes", "no")
+  )
+```
+
+Agora cirei o gráfico de cada característica e depois agrupei eles em apenas uma imagem `maps`.
+
+```{r}
+map_plot1 <- ggplot(map1, aes(x = LG, y = Size)) +
+  geom_segment(aes(
+    yend = 200,
+    y = 0,
+    x = LG,
+    xend = LG
+  ),
+  color = "skyblue",
+  size = 1) +
+  geom_point(
+    data = subset(map1, is_locus == "yes"),
+    color = "skyblue",
+    size = 0.5
+  ) +
+  geom_point(
+    data = subset(map1, is_highlight == "yes"),
+    color = "Orange",
+    size = 0.5
+  ) +
+  geom_text_repel(
+    data = subset(map1, is_highlight == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  geom_text_repel(
+    data = subset(map1, is_locus == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.15, 0.05))) +
+  scale_y_continuous(expand = expansion(mult = c(0.03, 0.05))) +
+  theme_void() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 4),
+    axis.ticks = element_blank()
+  ) +
+  labs(y = "", x = "")
+
+map_plot2 <- ggplot(map2, aes(x = LG, y = Size)) +
+  geom_segment(aes(
+    yend = 200,
+    y = 0,
+    x = LG,
+    xend = LG
+  ),
+  color = "skyblue",
+  size = 1) +
+  geom_point(
+    data = subset(map2, is_locus == "yes"),
+    color = "skyblue",
+    size = 0.5
+  ) +
+  geom_point(
+    data = subset(map2, is_highlight == "yes"),
+    color = "Orange",
+    size = 0.5
+  ) +
+  geom_text_repel(
+    data = subset(map2, is_highlight == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  geom_text_repel(
+    data = subset(map2, is_locus == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.15, 0.05))) +
+  scale_y_continuous(expand = expansion(mult = c(0.03, 0.05))) +
+  theme_void() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 4),
+    axis.ticks = element_blank()
+  ) +
+  labs(y = "", x = "")
+
+map_plot3 <- ggplot(map3, aes(x = LG, y = Size)) +
+  geom_segment(aes(
+    yend = 200,
+    y = 0,
+    x = LG,
+    xend = LG
+  ),
+  color = "skyblue",
+  size = 1) +
+  geom_point(
+    data = subset(map3, is_locus == "yes"),
+    color = "skyblue",
+    size = 0.5
+  ) +
+  geom_point(
+    data = subset(map3, is_highlight == "yes"),
+    color = "Orange",
+    size = 0.5
+  ) +
+  geom_text_repel(
+    data = subset(map3, is_highlight == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  geom_text_repel(
+    data = subset(map3, is_locus == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.15, 0.05))) +
+  scale_y_continuous(expand = expansion(mult = c(0.03, 0.05))) +
+  theme_void() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 4),
+    axis.ticks = element_blank()
+  ) +
+  labs(y = "", x = "")
+
+map_plot4 <- ggplot(map4, aes(x = LG, y = Size)) +
+  geom_segment(aes(
+    yend = 200,
+    y = 0,
+    x = LG,
+    xend = LG
+  ),
+  color = "skyblue",
+  size = 1) +
+  geom_point(
+    data = subset(map4, is_locus == "yes"),
+    color = "skyblue",
+    size = 0.5
+  ) +
+  geom_point(
+    data = subset(map4, is_highlight == "yes"),
+    color = "Orange",
+    size = 0.5
+  ) +
+  geom_text_repel(
+    data = subset(map4, is_highlight == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  geom_text_repel(
+    data = subset(map4, is_locus == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.15, 0.05))) +
+  scale_y_continuous(expand = expansion(mult = c(0.03, 0.05))) +
+  theme_void() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 4),
+    axis.ticks = element_blank()
+  ) +
+  labs(y = "", x = "")
+
+map_plot5 <- ggplot(map5, aes(x = LG, y = Size)) +
+  geom_segment(aes(
+    yend = 200,
+    y = 0,
+    x = LG,
+    xend = LG
+  ),
+  color = "skyblue",
+  size = 1) +
+  geom_point(
+    data = subset(map5, is_locus == "yes"),
+    color = "skyblue",
+    size = 0.5
+  ) +
+  geom_point(
+    data = subset(map5, is_highlight == "yes"),
+    color = "Orange",
+    size = 0.5
+  ) +
+  geom_text_repel(
+    data = subset(map5, is_highlight == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  geom_text_repel(
+    data = subset(map5, is_locus == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.15, 0.05))) +
+  scale_y_continuous(expand = expansion(mult = c(0.03, 0.05))) +
+  theme_void() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 4),
+    axis.ticks = element_blank()
+  ) +
+  labs(y = "", x = "")
+
+map_plot6 <- ggplot(map6, aes(x = LG, y = Size)) +
+  geom_segment(aes(
+    yend = 200,
+    y = 0,
+    x = LG,
+    xend = LG
+  ),
+  color = "skyblue",
+  size = 1) +
+  geom_point(
+    data = subset(map6, is_locus == "yes"),
+    color = "skyblue",
+    size = 0.5
+  ) +
+  geom_point(
+    data = subset(map6, is_highlight == "yes"),
+    color = "Orange",
+    size = 0.5
+  ) +
+  geom_text_repel(
+    data = subset(map6, is_highlight == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  geom_text_repel(
+    data = subset(map6, is_locus == "yes"),
+    aes(label = marker),
+    size = 1.5,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    force   = 0,
+    nudge_x      = -0.55,
+    nudge_y      = -1.5,
+    direction    = "x",
+    hjust        = 0.5,
+    segment.curvature = -1e-20,
+    segment.angle     = 45,
+    segment.size = 0.1
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.15, 0.05))) +
+  scale_y_continuous(expand = expansion(mult = c(0.03, 0.05))) +
+  theme_void() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 4),
+    axis.ticks = element_blank()
+  ) +
+  labs(y = "", x = "")
+
+
+maps <- ggdraw() +
+  draw_plot(
+    map_plot1,
+    x = 0.05,
+    y = .5,
+    width = .3,
+    height = .5
+  ) +
+  draw_plot(
+    map_plot2,
+    x = .4,
+    y = .5,
+    width = .3,
+    height = .5
+  ) +
+  draw_plot(
+    map_plot3,
+    x = .75,
+    y = .5,
+    width = .3,
+    height = .5
+  ) +
+  draw_plot(
+    map_plot4,
+    x = 0.25,
+    y = 0,
+    width = 0.3,
+    height = 0.5
+  ) +
+  draw_plot(
+    map_plot5,
+    x = 0.65,
+    y = 0,
+    width = 0.3,
+    height = 0.5
+  ) +
+  draw_plot_label(
+    label = c("A", "B", "C", "D", "E"),
+    size = 15,
+    x = c(0, 0.35, 0.7, 0.2, 0.6),
+    y = c(1, 1, 1, 0.5, 0.5)
+  )
+
+print(maps)
+```
