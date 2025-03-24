@@ -1,10 +1,49 @@
 ---
 title: "About"
+author: "Costa, W. G."
+date: "`r Sys.Date()`"
+site: workflowr::wflow_site
+url: https://wevertongomescosta.github.io/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis/
 output:
   workflowr::wflow_html:
-    toc: false
+    toc: yes
+  highlight: github
 editor_options:
   chunk_output_type: console
+github-repo: wevertongomescosta/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis
 ---
 
-Describe your project.
+# Sobre o Projeto
+Este projeto investiga métodos avançados de predição genômica utilizando técnicas de machine learning e redes neurais artificiais, com foco especial em características influenciadas por efeitos epistáticos. Nosso objetivo é desenvolver modelos preditivos que capturem eficientemente interações genéticas complexas, superando as limitações das abordagens estatísticas tradicionais.
+
+O estudo compara o desempenho de diferentes algoritmos de aprendizado de máquina com métodos convencionais de melhoramento genético, utilizando dados genômicos de alta dimensionalidade. Todo o processo analítico é implementado em ambiente reprodutível, integrando ferramentas de bioinformática e ciência de dados.
+
+**Publicação Associada**  
+Este script é parte integrante do artigo:  
+*Genomic prediction through machine learning and neural networks for traits with epistasis*  
+**Autores**: Weverton Gomes da Costa, Maurício de Oliveira Celeri, Ivan de Paiva Barbosa, Gabi Nunes Silva, Camila Ferreira Azevedo, Aluizio Borem, Moysés Nascimento, Cosme Damião Cruz  
+**Periódico**: *Comput Struct Biotechnol J*. 2022;20:5490-5499  
+**DOI**: [10.1016/j.csbj.2022.09.029](https://doi.org/10.1016/j.csbj.2022.09.029)  
+**PMID**: 36249559 | **PMCID**: PMC9547190
+
+Este projeto foi desenvolvido no âmbito das pesquisas do LICAE^[[Laboratório de Inteligência Computacional e Aprendizado Estatístico - Universidade Federal de Viçosa](https://www.licae.ufv.br/)].
+
+# About the Project
+This project investigates advanced genomic prediction methods using machine learning techniques and artificial neural networks, with special focus on traits influenced by epistatic effects. Our goal is to develop predictive models that efficiently capture complex genetic interactions, overcoming the limitations of traditional statistical approaches.
+
+The study compares the performance of different machine learning algorithms with conventional genetic improvement methods using high-dimensional genomic data. The entire analytical process is implemented in a reproducible environment, integrating bioinformatics tools and data science.
+
+**Associated Publication**  
+This script is part of the research article:  
+*Genomic prediction through machine learning and neural networks for traits with epistasis*  
+**Authors**: Weverton Gomes da Costa, Maurício de Oliveira Celeri, Ivan de Paiva Barbosa, Gabi Nunes Silva, Camila Ferreira Azevedo, Aluizio Borem, Moysés Nascimento, Cosme Damião Cruz  
+**Journal**: *Comput Struct Biotechnol J*. 2022;20:5490-5499  
+**DOI**: [10.1016/j.csbj.2022.09.029](https://doi.org/10.1016/j.csbj.2022.09.029)  
+**PMID**: 36249559 | **PMCID**: PMC9547190
+
+This project was developed as part of the research activities at LICAE.
+
+---
+
+**Author**  
+Costa, W. G.^[Weverton Gomes da Costa, Post-Doctoral Researcher, Department of Statistics at the Federal University of Viçosa, weverton.costa@ufv.br]
