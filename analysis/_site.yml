@@ -12,7 +12,6 @@ navbar:
   - icon: fa-github
     text: Source code
     href: https://github.com/WevertonGomesCosta/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis
-
 output:
   workflowr::wflow_html:
     toc: true
