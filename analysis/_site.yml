@@ -5,6 +5,8 @@ navbar:
   left:
   - text: Home
     href: index.html
+  - text: Genomic-prediction
+    href: Genomic-prediction.html
   - text: About
     href: about.html
   - text: License
