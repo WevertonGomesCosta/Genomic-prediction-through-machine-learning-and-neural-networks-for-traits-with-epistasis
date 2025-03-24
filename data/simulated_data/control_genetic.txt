@@ -27,7 +27,7 @@ Selected_locos, 80
 action, 0
 gmd, 0.5
 model, 2
-heritability, 0.5
+heritability, 0.3
 constant, 100
 scale, 1
 CV, 12
