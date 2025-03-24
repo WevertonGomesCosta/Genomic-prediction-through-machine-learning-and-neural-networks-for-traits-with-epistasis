@@ -13,6 +13,10 @@ editor_options:
 github-repo: wevertongomescosta/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis
 ---
 
+```{r setup, include=F} 
+knitr::opts_chunk$set(echo = T, warning = F)
+```
+
 # Genomic prediction through machine learning and neural networks for traits with epistasis
 
 # Creating Genetic Map Chart
