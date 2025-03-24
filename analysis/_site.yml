@@ -9,9 +9,14 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/WevertonGomesCosta/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis
+
 output:
   workflowr::wflow_html:
-    toc: yes
-    toc_float: yes
-    theme: cosmo
-    highlight: textmate
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: haddock
+
