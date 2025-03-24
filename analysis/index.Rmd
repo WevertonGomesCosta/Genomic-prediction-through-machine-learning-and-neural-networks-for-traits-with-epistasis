@@ -958,7 +958,7 @@ write.csv(res.imp.ad, "output/res.imp.ad.csv", row.names = FALSE)
 library(randomForest)
 ```
 
-#2. Bagging Processing
+### Bagging Processing
 
 ```{r}
 for(j in 1:nvariable) {
@@ -1069,7 +1069,7 @@ write.csv(res.imp.bag, "output/res.imp.bag.csv", row.names = FALSE)
 library(randomForest)
 ```
 
-#2. Random Forest Processing
+### Random Forest Processing
 
 ```{r}
 for(j in 1:nvariable) {
