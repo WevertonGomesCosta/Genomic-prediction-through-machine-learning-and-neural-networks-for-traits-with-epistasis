@@ -6,7 +6,7 @@ site: workflowr::wflow_site
 url: https://wevertongomescosta.github.io/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis/
 output:
   workflowr::wflow_html:
-    toc: yes
+    toc: FALSE
   highlight: github
 editor_options:
   chunk_output_type: console
