@@ -14,7 +14,7 @@ github-repo: wevertongomescosta/Genomic-prediction-through-machine-learning-and-
 ---
 
 ```{r setup, include=F} 
-knitr::opts_chunk$set(echo = T, warning = F)
+knitr::opts_chunk$set(echo = T, warning = F, message = F)
 ```
 
 # Genomic prediction through machine learning and neural networks for traits with epistasis
