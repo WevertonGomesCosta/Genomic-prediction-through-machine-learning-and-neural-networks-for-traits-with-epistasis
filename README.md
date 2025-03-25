@@ -1,17 +1,3 @@
----
-title: "Genomic Prediction through Machine Learning and Neural Networks for Traits with Epistasis"
-author: "Costa, W. G."
-date: "`r Sys.Date()`"
-site: workflowr::wflow_site
-url: https://wevertongomescosta.github.io/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis/
-output:
-  workflowr::wflow_html:
-    toc: FALSE
-editor_options:
-  chunk_output_type: console
-github-repo: wevertongomescosta/Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis
----
-
 # Predição Genômica através de Machine Learning e Redes Neurais para Características com Epistasia
 
 Bem-vindo! Este repositório contém a implementação completa e recursos associados ao estudo de predição genômica utilizando técnicas avançadas de aprendizado de máquina e redes neurais artificiais, com foco especial em características influenciadas por efeitos epistáticos.
