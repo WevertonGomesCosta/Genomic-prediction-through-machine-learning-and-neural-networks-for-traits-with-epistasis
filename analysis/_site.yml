@@ -1,7 +1,7 @@
-name: "Genomic prediction through machine learning and neural networks for traits with epistasis"
+name: "Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis"
 output_dir: ../docs
 navbar:
-  title: "Genomic-prediction-through-machine-learning-and-neural-networks-for-traits-with-epistasis"
+  title: "Genomic prediction through machine learning and neural networks for traits with epistasis"
   left:
   - text: Home
     href: index.html
