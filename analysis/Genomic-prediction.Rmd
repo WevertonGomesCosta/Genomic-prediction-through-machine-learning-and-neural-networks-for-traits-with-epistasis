@@ -17,22 +17,6 @@ github-repo: wevertongomescosta/Genomic-prediction-through-machine-learning-and-
 knitr::opts_chunk$set(echo = T, warning = F)
 ```
 
-# Genomic prediction through machine learning and neural networks for traits with epistasis
-
-# Creating Genetic Map Chart
-
-## Libraries 
-
-```{r}
-library(tidyverse)
-library(data.table)
-library(ggthemes)
-library(ggrepel)
-library(ggpubr)
-library(cowplot)
-library(tidytext)
-```
-
 # Data
 
 ## Data importantion
@@ -88,6 +72,7 @@ set.seed(123) #Seed for reproduction of results
 ```{r}
 library(earth)                # fit MARS models
 library(caret); library(vip)  # Variable importance
+library(tidyverse)            # Data manipulation
 ```
 
 ### MARS Processing
@@ -99,7 +84,7 @@ threshf <- 0.05
 passot <- 0.005
 ```
 
-```{r}
+```{r mars, eval=FALSE}
 for(g in 1:grau) {
   cat("Grau: ", g, "\n")
   
@@ -267,7 +252,7 @@ library(ISLR)
 
 ### Decision Tree Processing
 
-```{r}
+```{r decision_tree, eval=FALSE}
 for(j in 1:nvariable) {
   cat("==================================================== =======",
       "\n")
@@ -382,7 +367,7 @@ library(randomForest)
 
 ### Bagging Processing
 
-```{r}
+```{r bagging, eval=FALSE}
 for(j in 1:nvariable) {
   cat("==================================================== =======",
       "\n")
@@ -493,7 +478,7 @@ library(randomForest)
 
 ### Random Forest Processing
 
-```{r}
+```{r random_forest, eval=FALSE}
 for(j in 1:nvariable) {
   cat("==================================================== =======",
       "\n")
@@ -609,7 +594,7 @@ library(gbm)
 
 ### Boosting Processing
 
-```{r}
+```{r boosting, eval=FALSE}
 for(j in 1:nvariable) {
   cat("==================================================== =======",
       "\n")
@@ -731,7 +716,7 @@ library(MASS)
 
 ### G-BLUP Processing
 
-```{r}
+```{r gblup, eval=FALSE}
 for(j in 1:nvariable) {
   cat("==================================================== =======",
       "\n")
@@ -845,7 +830,7 @@ write.csv(res.imp.gblup,"output/res.imp.gblup.csv", row.names = FALSE)
 
 ### Loading results obtained in the [Genes Software](https://www.scielo.br/j/asagr/a/sLvDYF5MYv9kWR5MKgxb6sL/?lang=en). Scripts can be seen [here](analysis/suplementary__matlab_rbf.m)
 
-```{r}
+```{r rbf}
 res.rbf <- read.csv("output/res.rbf.csv")
   
 colnames(res.rbf) <- c("R².Trein",
@@ -861,7 +846,7 @@ colnames(res.rbf) <- c("R².Trein",
 
 ### Loading results obtained in the [Genes Software](https://www.scielo.br/j/asagr/a/sLvDYF5MYv9kWR5MKgxb6sL/?lang=en). Scripts can be seen [here](analysis/suplementary__matlab_MLP.m)
 
-```{r}
+```{r mlp}
 res.mlp <- read.csv("output/res.mlp.csv", row.names = 1)
 
 colnames(res.mlp) <- c("R².Trein",
@@ -877,7 +862,7 @@ colnames(res.mlp) <- c("R².Trein",
 
 ### Organizing results
 
-```{r}
+```{r results, eval=FALSE}
 result <-
   rbind(res.mars1,
         res.mars2,
@@ -950,13 +935,17 @@ result_final <- result_final %>%
 write.csv(result_final,"output/result.final.csv", row.names = FALSE)
 ```
 
+```{r read_results, include=FALSE}
+result_final <- read.csv("output/result.final.csv")
+```
+
+
 ### Ploting results
 
 #### Acuracy selective
 
-```{r}
-
-result_final <- read.csv("output/result.final.csv")
+```{r accuracy}
+library(ggthemes)
 
 h_line <- result_final %>%
   group_by(ngenes, herd) %>%
@@ -999,7 +988,7 @@ result_final %>%
 
 #### Acuracy predtive
 
-```{r}
+```{r accuracy_predtive}
 result_final %>%
   mutate(varnames = fct_reorder2(method, REQM.mean, family)) %>%
   ggplot(aes(x = varnames, y = REQM.mean, fill = family)) +
